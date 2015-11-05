@@ -179,6 +179,16 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 	fld st(0)
 	fstp real4 ptr[rcx + 4*3]		; = X[3]
 	fstp real4 ptr[rcx + 4*5]		; = X[5]
+									; const(a5+a7), const(a5-a7), a3, a1
+								
+	ffree st(0)						; очистим стек
+	ffree st(1)
+	ffree st(2)
+	ffree st(3)
+	ffree st(4)
+	ffree st(5)
+	ffree st(6)
+	ffree st(7)
 
 	ret
 CalculateSpectrum ENDP
@@ -323,6 +333,15 @@ fistp word ptr[rcx + 2*3]	; = x[3]
 fadd st(0), st(1)			; x[7], const*(a6 + a7), const*(a6 - a7), a5
 fidiv toDiv
 fistp word ptr[rcx + 2*7]	; = x[7]
+							
+ffree st(0)					; очистим стек
+ffree st(1)
+ffree st(2)
+ffree st(3)
+ffree st(4)
+ffree st(5)
+ffree st(6)
+ffree st(7)
 
 	ret
 RecoverSignal ENDP
