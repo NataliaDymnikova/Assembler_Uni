@@ -66,6 +66,10 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 	push r13
 	push r14
 	push r15
+	
+	push rbp						; сохраняем rbp
+	mov rbp, rsp					; сохраняем rsp в rbp
+	sub rsp, 8
 
 	movsx r12D, word ptr[rdx]		; r12 = x[0]
 	movsx r8D, word ptr[rdx + 2*4] 	; r8  = x[4]
@@ -100,6 +104,7 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 	add rax, r9						; rax = a0 + a2
 	add rax, r10					; rax = a0 + a2 + a4
 	add rax, r11					; a0 + a2 + a4 + a6 = X[0]
+	mov rsp, rbp
 	push rax
 	fild word ptr[rsp]
 	fstp real4 ptr[rcx]				; X[0]
@@ -108,12 +113,14 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 	sub rax, r10					; rax = a0 + a2 - a4 + a6
 	sub rax, r11					; rax = a0 + a2 - a4
 	sub rax, r11					; a0 + a2 - a4 - a6 = X[4]
+	mov rsp, rbp
 	push rax
 	fild word ptr[rsp]
 	fstp real4 ptr[rcx + 4 * 4]		; X[4]
 	
 	mov rax, r8
 	sub rax, r9						; X[2] = X[6] = a0 - a2
+	mov rsp, rbp
 	push rax
 	fild word ptr[rsp]				; На стеке X[0]
 	fld st(0)
@@ -122,11 +129,13 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 
 	mov rax, r10
 	sub rax, r11					; rax = a4 - a6 = X[14]
+	mov rsp, rbp
 	push rax
 	fild word ptr[rsp]
 	fstp real4 ptr[rcx + 4 * 14]	; X[14]
 	
 	neg rax							; rax = a6 - a4 = X[10]
+	mov rsp, rbp
 	push rax
 	fild qword ptr[rsp]
 	fstp real4 ptr[rcx + 4 * 10]	; X[10]
@@ -142,13 +151,14 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 	fild dword ptr [rsp]
 	push r15
 	fild dword ptr [rsp]			; На стеке теперь a5+a7, a5-a7, a3, a1
-	
-	add rsp, 8 * 9					; Восстановим r12..15
+
+	mov rsp, rbp
+	pop rbp							; Восстанавливаем все необходимые регистры
 	pop r15
 	pop r14
 	pop r13
 	pop r12
-
+	
 	fld const						; Загружает const на стек
 	fmul st(2), st(0)
 	fmulp							; На стеке const(a5+a7), const(a5-a7), a3, a1
@@ -180,15 +190,6 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 	fstp real4 ptr[rcx + 4*3]		; = X[3]
 	fstp real4 ptr[rcx + 4*5]		; = X[5]
 									; const(a5+a7), const(a5-a7), a3, a1
-								
-	ffree st(0)						; очистим стек
-	ffree st(1)
-	ffree st(2)
-	ffree st(3)
-	ffree st(4)
-	ffree st(5)
-	ffree st(6)
-	ffree st(7)
 
 	ret
 CalculateSpectrum ENDP
@@ -334,15 +335,6 @@ fadd st(0), st(1)			; x[7], const*(a6 + a7), const*(a6 - a7), a5
 fidiv toDiv
 fistp word ptr[rcx + 2*7]	; = x[7]
 							
-ffree st(0)					; очистим стек
-ffree st(1)
-ffree st(2)
-ffree st(3)
-ffree st(4)
-ffree st(5)
-ffree st(6)
-ffree st(7)
-
 	ret
 RecoverSignal ENDP
 END
