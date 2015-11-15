@@ -69,7 +69,7 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 	
 	push rbp						; сохраняем rbp
 	mov rbp, rsp					; сохраняем rsp в rbp
-	sub rsp, 8
+	sub rsp, 4
 
 	movsx r12D, word ptr[rdx]		; r12 = x[0]
 	movsx r8D, word ptr[rdx + 2*4] 	; r8  = x[4]
@@ -104,8 +104,7 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 	add rax, r9						; rax = a0 + a2
 	add rax, r10					; rax = a0 + a2 + a4
 	add rax, r11					; a0 + a2 + a4 + a6 = X[0]
-	mov rsp, rbp
-	push rax
+	mov dword ptr[rsp], eax
 	fild word ptr[rsp]
 	fstp real4 ptr[rcx]				; X[0]
 	
@@ -113,15 +112,14 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 	sub rax, r10					; rax = a0 + a2 - a4 + a6
 	sub rax, r11					; rax = a0 + a2 - a4
 	sub rax, r11					; a0 + a2 - a4 - a6 = X[4]
-	mov rsp, rbp
-	push rax
+
+	mov dword ptr[rsp], eax
 	fild word ptr[rsp]
 	fstp real4 ptr[rcx + 4 * 4]		; X[4]
 	
 	mov rax, r8
 	sub rax, r9						; X[2] = X[6] = a0 - a2
-	mov rsp, rbp
-	push rax
+	mov dword ptr[rsp], eax
 	fild word ptr[rsp]				; На стеке X[0]
 	fld st(0)
 	fstp real4 ptr[rcx + 4 * 2]		; X[0]
@@ -129,27 +127,25 @@ CalculateSpectrum PROC	; [RCX] - Spectrum
 
 	mov rax, r10
 	sub rax, r11					; rax = a4 - a6 = X[14]
-	mov rsp, rbp
-	push rax
+	mov dword ptr[rsp], eax
 	fild word ptr[rsp]
 	fstp real4 ptr[rcx + 4 * 14]	; X[14]
 	
 	neg rax							; rax = a6 - a4 = X[10]
-	mov rsp, rbp
-	push rax
+	mov dword ptr[rsp], eax
 	fild qword ptr[rsp]
 	fstp real4 ptr[rcx + 4 * 10]	; X[10]
 		
 	mov real4 ptr[rcx + 4 * 8], 0	; X[8]
 	mov real4 ptr[rcx + 4 * 12], 0	; X[12]
 	
-	push r12
+	mov dword ptr[rsp], r12D
 	fild dword ptr [rsp]
-	push r13	
+	mov dword ptr[rsp], r13D
 	fild dword ptr [rsp]
-	push r14	
+	mov dword ptr[rsp], r14D
 	fild dword ptr [rsp]
-	push r15
+	mov dword ptr[rsp], r15D
 	fild dword ptr [rsp]			; На стеке теперь a5+a7, a5-a7, a3, a1
 
 	mov rsp, rbp
